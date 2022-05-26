@@ -76,27 +76,27 @@ func transform(qast *rel.SqlSelect, depth int, sess db.Session) (db.Selector, er
 		}
 	}
 
-	if len(qast.From) == 1 {
-		frm := qast.From[0]
+	tables := make([]interface{}, 0, len(qast.From))
 
+	for _, frm := range qast.From {
 		if int(frm.Op) == 0 && int(frm.LeftOrRight) == 0 && int(frm.JoinType) == 0 {
 			if frm.Alias != "" {
-				selecter.From(fmt.Sprintf("%s AS %s", frm.Name, frm.Alias))
+				tables = append(tables, fmt.Sprintf("%s AS %s", frm.Name, frm.Alias))
+
 			} else if frm.Schema == "" {
-				selecter.From(frm.Name)
+				tables = append(tables, frm.Name)
 			} else {
-				selecter.From(fmt.Sprintf("%s.%s", frm.Schema, frm.Name))
+				tables = append(tables, fmt.Sprintf("%s.%s", frm.Schema, frm.Name))
 			}
+
 		} else if int(frm.JoinType) != 0 {
 			pp.Println(frm.JoinType.String())
 		}
-
-	} else {
-		pp.Println(qast.From)
-		panic("Does not handle multiple from sources.")
 	}
 
-	return selecter, nil
+	selecter.From(tables...)
+
+	return selecter.From(tables...), nil
 }
 
 func transformColumns(cols rel.Columns) ([]interface{}, error) {
@@ -133,9 +133,7 @@ func transformColumns(cols rel.Columns) ([]interface{}, error) {
 
 			left, right, ok := col.LeftRight()
 			if ok {
-				pp.Println("LEFT | RIGHT", left, right)
-				// fixme => check if table is in dtable etc and perm
-				// and map to tns format
+				columns = append(columns, fmt.Sprintf("%s.%s", left, right))
 			} else {
 				columns = append(columns, n.String())
 			}

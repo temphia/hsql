@@ -16,6 +16,18 @@ CREATE TABLE "pp_birthday" (
   "pp_born" DATETIME DEFAULT CURRENT_TIMESTAMP
 );`
 
+var testConds = []string{
+	`SELECT * FROM table_name;`,
+	`SELECT a, b from (select a,b,c from tableb);`,
+	`SELECT distinct(mno) FROM table_name;`,
+	`SELECT count(mno) FROM table_name;`,
+	`SELECT COUNT(mno) FROM table_name;`,
+	`SELECT Customers.customer_id, Customers.first_name, Orders.amount
+	FROM Customers
+	INNER JOIN Orders
+	ON Customers.customer_id = Orders.customer;`,
+}
+
 type Birthday struct {
 	Name string    `db:"pp_name"`
 	Born time.Time `db:"pp_born"`
@@ -53,7 +65,7 @@ func main() {
 		Born: time.Date(1962, time.November, 25, 0, 0, 0, 0, time.Local),
 	})
 
-	h := NewHSQL(sess, `select * from pp_birthday;`)
+	h := NewHSQL(sess, testConds[5])
 	err = h.Parse()
 	handlerErr(err)
 	h.Transform()
@@ -64,22 +76,4 @@ func handlerErr(err error) {
 		pp.Println(err)
 		panic(err)
 	}
-}
-
-func main2() {
-
-	testConds := []string{
-		`SELECT * FROM table_name;`,
-		`SELECT a, b from (select a,b,c from tableb);`,
-		`SELECT distinct(mno) FROM table_name;`,
-		`SELECT count(mno) FROM table_name;`,
-		`SELECT COUNT(mno) FROM table_name;`,
-		`SELECT Customers.customer_id, Customers.first_name, Orders.amount
-		FROM Customers
-		INNER JOIN Orders
-		ON Customers.customer_id = Orders.customer;`,
-	}
-
-	pp.Println(testConds)
-
 }
