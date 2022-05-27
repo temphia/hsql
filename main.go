@@ -65,7 +65,7 @@ func main() {
 		Born: time.Date(1962, time.November, 25, 0, 0, 0, 0, time.Local),
 	})
 
-	h := NewHSQL(sess, testConds[5])
+	h := NewHSQL(sess, testConds[1])
 	err = h.Parse()
 	handlerErr(err)
 	h.Transform()
