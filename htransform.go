@@ -182,6 +182,8 @@ func extractExpr(hctx *HqlCtx, e expr.Node) (string, []interface{}, error) {
 			args = append(args, eargs...)
 		}
 
+		buf.WriteByte(')')
+
 		return buf.String(), args, nil
 	case *expr.IdentityNode:
 		left, right, ok := n.LeftRight()

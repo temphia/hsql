@@ -6,7 +6,7 @@ import (
 )
 
 var testConds = []string{
-	`SELECT * FROM table_name where mpr=12 AND mno < '12' AND (pqr1 = 23 OR  ISNULL(dde) );`,
+	`SELECT mpr, tolower(mno) FROM table_name where mpr=12 AND mno < '12' AND (pqr1 = 23 OR  ISNULL(dde) );`,
 	`SELECT a, b from (select a,b,c from tableb);`,
 	`SELECT distinct(mno) FROM table_name;`,
 	`SELECT count(mno) FROM table_name;`,
