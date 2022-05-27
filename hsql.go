@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/k0kubun/pp"
 	"github.com/upper/db/v4"
 
 	"github.com/araddon/qlbridge/rel"
@@ -11,6 +10,9 @@ type HSQL struct {
 	db   db.Session
 	qstr string
 	qast *rel.SqlSelect
+
+	tqstr  string
+	tqargs []interface{}
 }
 
 func NewHSQL(db db.Session, qstr string) *HSQL {
@@ -45,6 +47,8 @@ func (h *HSQL) Transform() {
 	if err != nil {
 		panic(err)
 	}
-	pp.Println(s.String())
+
+	h.tqstr = s.String()
+	h.tqargs = s.Arguments()
 
 }
