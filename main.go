@@ -6,7 +6,7 @@ import (
 )
 
 var testConds = []string{
-	`SELECT * FROM table_name;`, `SELECT * FROM \"table_name\"`,
+	`SELECT * FROM table_name where mpr=12 AND mno < '12' AND (pqr1 = 23 OR  ISNULL(dde) );`,
 	`SELECT a, b from (select a,b,c from tableb);`,
 	`SELECT distinct(mno) FROM table_name;`,
 	`SELECT count(mno) FROM table_name;`,
@@ -30,6 +30,10 @@ func main() {
 	handlerErr(err)
 	h.Transform()
 
+	pp.Println("##PARED_TREE##", h.qast)
+	pp.Println("##BEFORE##", h.qstr)
+	pp.Println("##AFTER##", h.tqstr)
+	pp.Println("##ARGS##", h.tqargs)
 }
 
 func handlerErr(err error) {
