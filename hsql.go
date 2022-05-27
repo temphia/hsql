@@ -7,6 +7,7 @@ import (
 	"github.com/upper/db/v4"
 
 	"github.com/araddon/qlbridge/expr"
+	"github.com/araddon/qlbridge/lex"
 	"github.com/araddon/qlbridge/rel"
 )
 
@@ -88,13 +89,38 @@ func transform(qast *rel.SqlSelect, depth int, sess db.Session) (db.Selector, er
 			} else {
 				tables = append(tables, fmt.Sprintf("%s.%s", frm.Schema, frm.Name))
 			}
-
-		} else if int(frm.JoinType) != 0 {
-			pp.Println(frm.JoinType.String())
 		}
 	}
 
-	selecter.From(tables...)
+	selecter = selecter.From(tables...)
+
+	for _, frm := range qast.From {
+		if int(frm.JoinType) != 0 {
+
+			switch frm.JoinType {
+			case lex.TokenInner:
+				nexpr := frm.JoinExpr.(*expr.BinaryNode)
+
+				first := nexpr.Args[0].(*expr.IdentityNode)
+				second := nexpr.Args[1].(*expr.IdentityNode)
+
+				fleft, fright, _ := first.LeftRight()
+				sleft, sright, _ := second.LeftRight()
+				selecter = selecter.Join(fleft).On(fmt.Sprintf("%s.%s = %s.%s", fleft, fright, sleft, sright))
+
+			// case lex.TokenCross:
+			// case lex.TokenOuter:
+			// case lex.TokenLeft:
+			// case lex.TokenRight:
+
+			default:
+				panic("Unknown join type")
+			}
+
+			pp.Println(frm.JoinType)
+		}
+
+	}
 
 	return selecter.From(tables...), nil
 }
