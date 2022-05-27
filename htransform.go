@@ -71,23 +71,27 @@ func transform(hctx *HqlCtx, qast *rel.SqlSelect, depth uint8) (db.Selector, err
 
 	for _, frm := range qast.From {
 		if int(frm.JoinType) != 0 {
+			nexpr := frm.JoinExpr.(*expr.BinaryNode)
+
+			first := nexpr.Args[0].(*expr.IdentityNode)
+			second := nexpr.Args[1].(*expr.IdentityNode)
+
+			fleft, fright, _ := first.LeftRight()
+			sleft, sright, _ := second.LeftRight()
+
+			on := fmt.Sprintf("%s.%s = %s.%s", fleft, fright, sleft, sright)
 
 			switch frm.JoinType {
 			case lex.TokenInner:
-				nexpr := frm.JoinExpr.(*expr.BinaryNode)
-
-				first := nexpr.Args[0].(*expr.IdentityNode)
-				second := nexpr.Args[1].(*expr.IdentityNode)
-
-				fleft, fright, _ := first.LeftRight()
-				sleft, sright, _ := second.LeftRight()
-				selecter = selecter.Join(fleft).On(fmt.Sprintf("%s.%s = %s.%s", fleft, fright, sleft, sright))
-
-			// case lex.TokenCross:
-			// case lex.TokenOuter:
-			// case lex.TokenLeft:
-			// case lex.TokenRight:
-
+				selecter = selecter.Join(fleft).On(on)
+			case lex.TokenCross:
+				selecter = selecter.CrossJoin(fleft).On(on)
+			case lex.TokenOuter:
+				selecter = selecter.FullJoin(fleft).On(on)
+			case lex.TokenLeft:
+				selecter = selecter.LeftJoin(fleft).On(on)
+			case lex.TokenRight:
+				selecter = selecter.RightJoin(fleft).On(on)
 			default:
 				panic("Unknown join type")
 			}
